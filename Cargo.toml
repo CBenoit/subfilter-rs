@@ -1,0 +1,17 @@
+[package]
+name = "subfilter"
+version = "0.1.0"
+authors = ["Benoît CORTIER <benoit.cortier@fried-world.eu>"]
+edition = "2018"
+description = "Subtitle filter utility"
+keywords = ["cli", "search", "subtitles"]
+categories = ["command-line-utilities"]
+homepage = "https://github.com/CBenoit/subfilter-rs"
+repository = "https://github.com/CBenoit/subfilter-rs"
+readme = "README.md"
+
+[dependencies]
+regex = "1"
+subparse = "0.6"
+structopt = { version = "0.3", default-features = false }
+time = { version = "0.2", default-features = false }

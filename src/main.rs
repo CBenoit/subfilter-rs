@@ -2,13 +2,22 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 use subfilter::{parse, Config};
 use time::Duration;
+use colored::{Colorize, Color};
 
 #[derive(Debug, StructOpt)]
 #[structopt(about)]
 struct Opt {
-    // Whether timecode should be shown for the first line
+    /// Disable color output for matching part
+    #[structopt(long)]
+    no_color: bool,
+
+    /// Whether timecode should be shown for the first line
     #[structopt(long)]
     hide_time: bool,
+
+    /// Verbose output
+    #[structopt(short = "v", long)]
+    verbose: bool,
 
     /// Separate blocks if next timecode is later by an offset of this value in milliseconds.
     #[structopt(short = "i", long = "sep-interval", default_value = "5000")]
@@ -62,6 +71,10 @@ fn print_duration(d: &Duration) {
 fn main() {
     let opt = Opt::from_args();
 
+    if opt.verbose {
+        println!("{}: {:?}\n", "args".color(Color::Yellow), opt);
+    }
+
     let pre_replace_pattern = opt.pre_replace_pattern;
     let pre_replace_with = opt.pre_replace_with;
     let post_replace_pattern = opt.post_replace_pattern;
@@ -80,6 +93,10 @@ fn main() {
             )
         }),
     };
+
+    if opt.verbose {
+        println!("{}: {:?}\n", "config".color(Color::Yellow), config);
+    }
 
     let content = std::fs::read_to_string(&opt.file_path).unwrap();
 
@@ -107,6 +124,17 @@ fn main() {
 
         previous_timecode = Some(entry.end_ms);
 
-        println!("{}", entry.line);
+        if entry.is_match && !opt.no_color {
+            println!("{}", entry.line.color(Color::BrightRed));
+        } else {
+            println!("{}", entry.line);
+        }
+    }
+
+    match previous_timecode.take() {
+        Some(prev) if !opt.hide_time => {
+            print_duration(&prev);
+        }
+        _ => {}
     }
 }

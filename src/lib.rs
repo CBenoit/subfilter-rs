@@ -16,6 +16,7 @@ pub struct Entry {
     pub start_ms: Duration,
     pub end_ms: Duration,
     pub line: String,
+    pub is_match: bool,
 }
 
 pub fn parse(extension: Option<&OsStr>, file_content: &str, conf: Config) -> Vec<Entry> {
@@ -29,16 +30,16 @@ pub fn parse(extension: Option<&OsStr>, file_content: &str, conf: Config) -> Vec
         .post_replace
         .map(|(pat, rep)| (Regex::new(&pat).expect("bad post replace pattern"), rep));
 
-    let pre_process: Box<dyn Fn(String) -> String> = if let Some((pat, rep)) = pre_replace {
-        Box::new(move |line| pat.replace_all(&line, rep.as_str()).into_owned())
+    let pre_process: Box<dyn Fn(&mut Entry)> = if let Some((pat, rep)) = pre_replace {
+        Box::new(move |e| e.line = pat.replace_all(&e.line, rep.as_str()).into_owned())
     } else {
-        Box::new(move |line| line)
+        Box::new(|_| {})
     };
 
     let post_process: Box<dyn Fn(&mut Entry)> = if let Some((pat, rep)) = post_replace {
         Box::new(move |e| e.line = pat.replace_all(&e.line, rep.as_str()).into_owned())
     } else {
-        Box::new(move |_| {})
+        Box::new(|_| {})
     };
 
     let format = subparse::get_subtitle_format(extension, file_content.as_bytes())
@@ -57,11 +58,15 @@ pub fn parse(extension: Option<&OsStr>, file_content: &str, conf: Config) -> Vec
             let mut current_entry = Entry {
                 start_ms: Duration::milliseconds(entry.timespan.start.msecs()),
                 end_ms: Duration::milliseconds(entry.timespan.end.msecs()),
-                line: pre_process(line),
+                line,
+                is_match: false,
             };
 
+            pre_process(&mut current_entry);
+
             let keep = if let Some(pattern) = &pattern {
-                pattern.is_match(&current_entry.line)
+                current_entry.is_match = pattern.is_match(&current_entry.line);
+                current_entry.is_match
             } else {
                 true
             };

@@ -9,6 +9,7 @@ categories = ["command-line-utilities"]
 homepage = "https://github.com/CBenoit/subfilter-rs"
 repository = "https://github.com/CBenoit/subfilter-rs"
 readme = "README.md"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 regex = "1"

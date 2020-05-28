@@ -13,8 +13,10 @@ CLI tool to filter subtitle files.
 
 FLAGS:
     -h, --help         Prints help information
-        --hide-time
+        --hide-time    Whether timecode should be shown for the first line
+        --no-color     Disable color output for matching part
     -V, --version      Prints version information
+    -v, --verbose      Verbose output
 
 OPTIONS:
     -A, --after-context <after-context>                  Number of lines to show after each match [default: 0]

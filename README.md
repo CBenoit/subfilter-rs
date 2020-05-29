@@ -8,7 +8,7 @@ CLI tool to process and filter out stuff from subtitle files.
 
 I use it to get pre-processed clean output from subtitle files.
 This tool is similar to `grep` or `rip-grep` and alike, but has knowledge
-of subtitle file formats. In the context of this tool, a "line" is equivalent subtitle
+of subtitle file formats. In the context of this tool, a "line" is equivalent
 to a full subtitle entry (might contains several new lines).
 You can also request to print context lines by duration difference from the
 matched line.

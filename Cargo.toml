@@ -1,6 +1,6 @@
 [package]
 name = "subfilter"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Benoît CORTIER <benoit.cortier@fried-world.eu>"]
 edition = "2018"
 description = "Subtitle filter utility"

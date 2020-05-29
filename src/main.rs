@@ -76,12 +76,12 @@ struct Opt {
     pattern: Option<String>,
 }
 
-fn print_duration(d: &Duration) {
+fn format_duration(d: &Duration) -> String {
     let h = d.whole_hours();
     let min = d.whole_minutes() % 60;
     let s = d.whole_seconds() % 60;
     let ms = d.whole_milliseconds() % 1000;
-    println!("### {}:{}:{}.{} ###", h, min, s, ms);
+    format!("{}:{}:{}.{}", h, min, s, ms)
 }
 
 fn main() {
@@ -135,22 +135,46 @@ fn main() {
 
     let entries = parse(opt.file_path.extension(), &content, config);
 
-    let mut previous_timecode: Option<Duration> = None;
     let sep_interval = Duration::milliseconds(opt.separation_interval_ms);
+    let time_decoration = "###".color(Color::Yellow);
 
+    let mut previous_timecode: Option<Duration> = None;
     for entry in entries {
         match previous_timecode.take() {
             Some(prev) if entry.start_ms - prev >= sep_interval => {
                 if !opt.hide_time {
-                    print_duration(&prev);
-                    println!();
-                    print_duration(&entry.start_ms);
+                    if opt.no_color {
+                        println!(
+                            "### {} ###\n\n### {} ###",
+                            format_duration(&prev),
+                            format_duration(&entry.start_ms),
+                        );
+                    } else {
+                        println!(
+                            "{} {} {}\n\n{} {} {}",
+                            time_decoration,
+                            format_duration(&prev).color(Color::BrightBlue),
+                            time_decoration,
+                            time_decoration,
+                            format_duration(&entry.start_ms).color(Color::BrightBlue),
+                            time_decoration
+                        );
+                    }
                 } else {
                     println!();
                 }
             }
             None if !opt.hide_time => {
-                print_duration(&entry.start_ms);
+                if opt.no_color {
+                    println!("### {} ###", format_duration(&entry.start_ms),);
+                } else {
+                    println!(
+                        "{} {} {}",
+                        time_decoration,
+                        format_duration(&entry.start_ms).color(Color::BrightBlue),
+                        time_decoration
+                    );
+                }
             }
             _ => {}
         }
@@ -166,7 +190,16 @@ fn main() {
 
     match previous_timecode.take() {
         Some(prev) if !opt.hide_time => {
-            print_duration(&prev);
+            if opt.no_color {
+                println!("### {} ###", format_duration(&prev));
+            } else {
+                println!(
+                    "{} {} {}",
+                    time_decoration,
+                    format_duration(&prev).color(Color::BrightBlue),
+                    time_decoration
+                );
+            }
         }
         _ => {}
     }

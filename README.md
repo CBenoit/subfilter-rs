@@ -39,6 +39,15 @@ OPTIONS:
     -i, --sep-interval <separation-interval-ms>
             Separate blocks if next timecode is later by an offset of this value in milliseconds [default: 5000]
 
+        --time-after <time-after-context>
+            Duration threshold in milliseconds to decide whether we show a line after a match. This overrides
+            -C/--context -B/--before-context and -A/--after-context flags
+        --time-around <time-around-context>
+            Duration threshold in milliseconds to decide whether we show a line around a match. This overrides --time-
+            after, --time-before, -C/--context -B/--before-context and -A/--after-context flags
+        --time-before <time-before-context>
+            Duration threshold in milliseconds to decide whether we show a line before a match. This overrides
+            -C/--context -B/--before-context and -A/--after-context flags
 
 ARGS:
     <file-path>    Input file

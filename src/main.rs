@@ -1,8 +1,8 @@
+use colored::{Color, Colorize};
 use std::path::PathBuf;
 use structopt::StructOpt;
-use subfilter::{parse, Config};
+use subfilter::{parse, Config, ContextConfig};
 use time::Duration;
-use colored::{Colorize, Color};
 
 #[derive(Debug, StructOpt)]
 #[structopt(about)]
@@ -35,6 +35,22 @@ struct Opt {
     /// Number of lines to show after each match.
     #[structopt(short = "B", long, default_value = "0")]
     before_context: u32,
+
+    /// Duration threshold in milliseconds to decide whether we show a line around a match.
+    /// This overrides --time-after, --time-before, -C/--context -B/--before-context
+    /// and -A/--after-context flags.
+    #[structopt(long = "time-around")]
+    time_around_context: Option<i64>,
+
+    /// Duration threshold in milliseconds to decide whether we show a line after a match.
+    /// This overrides -C/--context -B/--before-context and -A/--after-context flags.
+    #[structopt(long = "time-after")]
+    time_after_context: Option<i64>,
+
+    /// Duration threshold in milliseconds to decide whether we show a line before a match.
+    /// This overrides -C/--context -B/--before-context and -A/--after-context flags.
+    #[structopt(long = "time-before")]
+    time_before_context: Option<i64>,
 
     /// Pattern to replace before pattern matching (see https://docs.rs/regex/1.3.7/regex/)
     #[structopt(long = "pre-replace-pattern")]
@@ -75,14 +91,31 @@ fn main() {
         println!("{}: {:?}\n", "args".color(Color::Yellow), opt);
     }
 
+    let context_config = if let Some(around) = opt.time_around_context {
+        let around = Duration::milliseconds(around);
+        ContextConfig::Durations {
+            before_duration: around,
+            after_duration: around,
+        }
+    } else if opt.time_before_context.is_some() || opt.time_after_context.is_some() {
+        ContextConfig::Durations {
+            before_duration: Duration::milliseconds(opt.time_before_context.unwrap_or(0)),
+            after_duration: Duration::milliseconds(opt.time_after_context.unwrap_or(0)),
+        }
+    } else {
+        ContextConfig::Lines {
+            before_context: opt.around_context.unwrap_or(opt.before_context),
+            after_context: opt.around_context.unwrap_or(opt.after_context),
+        }
+    };
+
     let pre_replace_pattern = opt.pre_replace_pattern;
     let pre_replace_with = opt.pre_replace_with;
     let post_replace_pattern = opt.post_replace_pattern;
     let post_replace_with = opt.post_replace_with;
 
     let config = Config {
-        before_context: opt.around_context.unwrap_or(opt.before_context),
-        after_context: opt.around_context.unwrap_or(opt.after_context),
+        context: context_config,
         pattern: opt.pattern,
         pre_replace: pre_replace_pattern
             .map(|pat| (pat, pre_replace_with.expect("pre-replace-with is missing"))),
